@@ -1,0 +1,25 @@
+{
+  "name": "hw8",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kjr21362/CSCI571-homework8/issues"
+  },
+  "homepage": "https://github.com/kjr21362/CSCI571-homework8#readme",
+  "dependencies": {
+    "bootstrap": "^4.3.1",
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
+    "request": "^2.88.0"
+  }
+}

@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html ng-app="myapp">
+    <head>
+        <base href="/">
+        <meta charset="utf-8">
+        <title>Homework 8 - Product Search</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">            
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.12/angular-material.min.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+        <style>
+            @media (max-width:480px){
+                .nav-pills > li {
+                    float:none;
+                }
+                .nav-pills > li > a {
+                    font-size: 15px;
+                    padding: 5px 5px;
+                }
+                .hideInMobileDevice{
+                    display: none;
+                }
+                .expandSelect {
+                    width: 100%;
+                }
+            }
+            @media (min-width:480px){
+                .hideInLargeDevice {
+                    display: none;
+                }
+            }
+            #facebook_wish_btnContainer .btn {
+                padding: 0;
+            }
+            label.required:after {
+                content: "*";
+                color: red;
+            }
+
+            .pagination a {
+                border: none;
+                color: black;
+            }
+            .pagination a.active {
+                background-color: black;
+                color: white;
+            }
+            
+
+            #pills-tab-results a, #pills-tab a {
+                color: black;
+            }
+            #pills-tab-results a.active,#pills-tab a.active {
+                background-color: black;
+                color: white;
+            }
+            .border-img {
+                border-width: 5px !important;
+                border-color: black !important;
+            }
+            .card-columns {
+                column-gap: 0.25rem;
+            }
+            .progress-wrapper{
+                position: relative;
+            }
+            .progress-wrapper .text{
+                position: absolute;
+                top: 50%;
+                left: 3px;
+                transform: translateY(-50%);
+                -webkit-transform: translateY(-50%);
+                text-align: left;
+                width: 100%;
+                z-index: 1;
+            }
+            #search_result_div tr.selected{
+                background-color: silver;
+            }
+            .invalid-border{
+                border: 1px solid red;
+            }
+            #btn_facebook img{
+                max-width: 30%;
+            }
+
+            .animate-container {
+                position: relative;
+                background:white;
+                width: 100%;
+            }
+
+            .question {
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 100%;
+                display: block;
+            }
+
+            .question.ng-enter,
+            .question.ng-leave {
+                -webkit-transition: all 0.5s ease;
+                -moz-transition: all 0.5s ease;
+                -o-transition: all 0.5s ease;
+                transition: all 0.5s ease;
+            }
+            .question.ng-enter {
+                left: 100%;
+            }
+            .question.ng-enter-active {
+                left: 0;
+            }
+            .question.ng-leave {
+                left: 0;
+            }
+            .question.ng-leave-active {
+                left: -100%;
+            }
+            #txt_zip.ng-invalid{
+                border: 1px solid red;
+            }
+            .noRecords {
+                background-color: #FFF2CF;
+            }
+            .noRecords p{
+                margin-top: 1rem;
+                margin-bottom: 1rem;
+            }
+            md-autocomplete md-progress-linear {
+                display: none;
+            }
+            
+        </style>
+    </head>
+    <body ng-controller="globalController" ng-cloak>
+        <script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>        
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.7/angular.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.7/angular-route.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.7/angular-animate.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.7/angular-aria.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.7/angular-messages.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.12/angular-material.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-svg-round-progressbar/0.4.8/roundProgress.min.js"></script>
+        <script async defer src="https://connect.facebook.net/en_US/sdk.js"></script>
+
+        <script>
+            
+
+            app = angular.module("myapp", ['ngMaterial', 'ngMessages', 'ngRoute', 'angular-svg-round-progressbar', 'ngAnimate']);
+            
+            app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider){
+                $routeProvider
+                .when('/testClick', {
+                    templateUrl: '/partials/test.html'
+                })
+                .when('/detail_results', {
+                    templateUrl: 'partials/detail_results.html'
+                })
+                .when('/wishList_results', {
+                    templateUrl: 'partials/wishList_results.html'
+                })
+                .when('/search_results',{
+                    templateUrl: '/partials/search_results.html'
+                });
+                $locationProvider.html5Mode(true);
+            }]);
+
+            app.filter("startFrom", function(){
+                return function(input, start){
+                    if(!input || !input.length){return;}
+                    start = +start;
+                    return input.slice(start);
+                }
+            });
+            
+
+            window.fbAsyncInit = function(){
+                FB.init({
+                    appId: '2305631903040384',
+                    aotuLogAppEvents: true,
+                    xfbml: true,
+                    version: 'v3.2'
+                });
+            };
+
+            app.controller("globalController", ["$scope", "$q", "$http", "$location", function($scope, $q, $http, $location){
+                $scope.globalData = {};
+                //$scope.globalData.items = [];
+                $scope.globalData.limit = 5;
+                $scope.globalData.pageSize = 10;
+                $scope.globalData.wishList_pageSize = 10;
+                $scope.globalData.currentPage = 0;
+                $scope.globalData.wishList_currentPage = 0;
+                $scope.globalData.itemsInStorage = [];
+                $scope.globalData.wishListAmount = 0.0;
+                $scope.globalData.isProgressBarVisible = false;
+                //$scope.globalData.zipSearchResults = [];
+
+                $scope.listBtnClicked = function(){
+                    $scope.globalData.isProgressBarVisible = true;
+                    
+                    
+                    setTimeout(function () {
+                        $scope.globalData.isProgressBarVisible = false;
+                        $scope.$apply();
+                    }, 400);
+                    
+                    $location.path('/search_results');
+                    
+                }
+                $scope.detailBtnClicked = function () {
+                    $scope.globalData.isProgressBarVisible = true;
+                    
+                    setTimeout(function () {
+                        $scope.globalData.isProgressBarVisible = false;
+                        $scope.$apply();
+                    }, 400);
+                    
+                    $location.path('/detail_results');
+                }
+
+                $scope.querySearch = function (query) {
+                    //return ['90008','12344'];
+                    if(!query){
+                        return;
+                    }
+                    deferred = $q.defer();
+                    $http({
+                        method: "GET",
+                        url: "/zip-search",
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
+                        params: {"searchText": query}
+
+                    }).then(function (response) {
+                        //console.log("receive zip search response");
+                        //console.log(response.data);
+
+                        jsonDoc = angular.fromJson(response.data);
+                        postalCodes = jsonDoc.postalCodes;
+                        $scope.globalData.zipSearchResults = [];
+                        for(i=0; i<postalCodes.length; i++){
+                            postalCode = postalCodes[i];
+                            $scope.globalData.zipSearchResults.push(postalCode.postalCode);
+                        }
+                        deferred.resolve($scope.globalData.zipSearchResults);
+                        //return $scope.globalData.zipSearchResults;
+
+                    }, function (response) {
+                        window.alert("errorThrown");
+                    });
+                    return deferred.promise;
+                    
+                }
+
+                $scope.currentLocationClicked = function(){
+                    $scope.searchText = '';
+                    $scope.selectedItem = undefined;
+                }
+
+                
+
+                $scope.zipSearch = function(query){
+                    var results = [{'value':11111, 'display':'11111'}, {'value':22222, 'display':'22222'}];
+                    return results
+                }
+
+                $scope.shippingCostDisplayed = function(cost){
+                    if(parseFloat(cost) == 0.0){
+                        return "Free Shipping";
+                    }
+                    return "$" + cost;
+                }
+                
+
+                $scope.titleDisplayed = function(title){
+                    var res = title;
+                    if(res.length > 30){
+                        res = res.substring(0,30);
+                        var idx = res.lastIndexOf(" ");
+                        if(idx < res.length-1){
+                            res = res.substring(0, idx);
+                            
+                        }
+                        res += "...";
+                    }
+                    return res;
+                }
+
+                $scope.facebook_btnClick = function(){
+                    if(!$scope.globalData.itemSpecs){
+                        return;
+                    }
+                    var name = $scope.globalData.itemSpecs.Title;
+                    var price = $scope.globalData.itemSpecs.CurrentPrice.Value;
+                    var url = $scope.globalData.itemSpecs.ViewItemURLForNaturalSearch;
+                    //console.log("facebook clicked");
+                    FB.ui({
+                        method: 'share',
+                        display: 'popup',
+                        href: url,
+                        quote: "Buy " + name + " at $" + price + " from link below",
+                    }, function(response){});
+                }
+
+                $scope.changePage = function(page){
+                    $scope.globalData.currentPage = page;
+                }
+                $scope.wishList_changePage = function(page){
+                    $scope.globalData.wishList_currentPage = page;
+                }
+                $scope.showMore = function(){
+                    $scope.globalData.limit = $scope.globalData.similarProducts.length;
+                }
+                $scope.showLess = function(){
+                    $scope.globalData.limit = 5;
+                }
+
+                $scope.wishListTabClicked = function(){
+                    //console.log("wish list tab clicked");
+                    $scope.globalData.itemsInStorage = [];
+                    $scope.globalData.wishListAmount = 0.0;
+                    var keys = Object.keys(localStorage);
+                    for(i=0; i<keys.length; i++){
+                        var itemObj = JSON.parse(localStorage.getItem(keys[i]));
+                        if(itemObj && itemObj.hasOwnProperty("sellingStatus")){
+                            var price = parseFloat(itemObj["sellingStatus"][0]["currentPrice"][0]["__value__"]);
+                            $scope.globalData.wishListAmount += price;
+                            $scope.globalData.itemsInStorage.push(itemObj);
+                        }
+                    }
+                    //console.log($scope.globalData.itemsInStorage);
+                    n_pages = Math.ceil($scope.globalData.itemsInStorage.length / $scope.globalData.wishList_pageSize) - 1;
+                    $scope.globalData.wishList_totalPages = [];
+                    for (i = 0; i <= n_pages; i++) {
+                        $scope.globalData.wishList_totalPages.push(i);
+                    }
+                    if($scope.globalData.itemsInStorage.length == 0){
+                        $scope.globalData.itemsInStorage = undefined;
+                    }
+                    //$location.path("/wishList_results");
+                }
+
+                $scope.itemToLocalStorage = function(itemObj){
+                    if(typeof(Storage) !== "undefined"){
+                        if(!itemObj){
+                            return;
+                        }
+                        if(typeof $scope.globalData.itemsInStorage === "undefined"){
+                            $scope.globalData.itemsInStorage = [];
+                        }
+                        var name = itemObj.itemId;
+                        var price = parseFloat(itemObj["sellingStatus"][0]["currentPrice"][0]["__value__"]);
+                        if(localStorage.getItem(name) === null){
+                            localStorage.setItem(name, JSON.stringify(itemObj));
+                            $scope.globalData.wishListAmount += price;
+                            $scope.globalData.itemsInStorage.push(itemObj);
+                        }
+                        else{
+                            localStorage.removeItem(name);
+                            $scope.globalData.wishListAmount -= price;
+                            var idx = $scope.globalData.itemsInStorage.indexOf(itemObj);
+                            if(idx > -1){
+                                $scope.globalData.itemsInStorage.splice(idx, 1);
+                            }
+                            if($scope.globalData.itemsInStorage.length == 0){
+                                $scope.globalData.itemsInStorage = undefined;
+                            }
+                        }
+                    }else{
+                        console.log("Local Storage not supported");
+                    }
+                }
+                $scope.itemInLocalStorage = function(itemObj){
+                    if (typeof (Storage) !== "undefined") {
+                        if (!itemObj) {
+                            return false;
+                        }
+                        //var name = itemObj.title;
+                        var name = itemObj.itemId;
+                        if(localStorage.getItem(name) === null){
+                            return false;
+                        }
+                        return true;
+                    }else{
+                        console.log("Local Storage not supported");
+                        return false;
+                    }
+                }
+                
+                $scope.resetBtnClicked = function () {
+                    //console.log("reset button clicked");
+                    $scope.form = {};
+                    $scope.form.rb_zip_code = 'rb_default_zip';
+                    $scope.globalData.items = null;
+                    $scope.globalData.itemSpecs = null;
+                    $scope.globalData.clickedItem = null;
+                    $scope.globalData.clickedItemIdx = null;
+                    $location.path('/search_results');
+                    $scope.search_form.$setPristine();
+                };
+
+                $scope.submitForm = function (isValid) {
+                    if (!isValid) {
+                        return;
+                    }
+                    $scope.globalData.isProgressBarVisible = true;
+                    $scope.globalData.itemSpecs = null;
+                    $scope.globalData.clickedItem = null;
+                    $scope.globalData.clickedItemIdx = null;
+                    //console.log("ng form submit clicked");
+                    //console.log($scope.search_form.txt_zip);
+                    //console.log($scope.search_form.txt_zip.$viewValue);
+                    $scope.form["txt_default_zip"] = default_zip;
+                    if($scope.search_form.txt_zip.$viewValue != ""){
+                        $scope.form["txt_zip"] = $scope.search_form.txt_zip.$viewValue;
+                    }
+                    //console.log($.param($scope.form));
+                    $http({
+                        method: "GET",
+                        url: "/submit-form",
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
+
+                        params: $scope.form
+                    }).then(function (response) {
+                        //console.log("angular receive submit response");
+                        //console.log(response.data);
+
+                        jsonDoc = angular.fromJson(response.data);
+                        if(jsonDoc.findItemsAdvancedResponse[0].searchResult[0]["@count"] == "0"){
+                            $scope.globalData.items = undefined;
+                        }else{
+                            $scope.globalData.items = jsonDoc.findItemsAdvancedResponse[0].searchResult[0]["item"];
+                            n_pages = Math.ceil($scope.globalData.items.length / $scope.globalData.pageSize) - 1;
+                            $scope.globalData.totalPages = [];
+                            for (i = 0; i <= n_pages; i++) {
+                                $scope.globalData.totalPages.push(i);
+                            }
+                        }
+
+                        $location.path('/search_results');
+                        $scope.globalData.isProgressBarVisible = false;
+
+                    }, function (response) {
+                        window.alert("errorThrown");
+                    });
+                    //console.log($scope.globalData.items);
+                };
+
+                $scope.itemClick = function (itemId, title, itemIndex, from) {
+                    //console.log("item clicked" + itemIndex);
+                    $scope.globalData.itemId = itemId;
+                    $scope.globalData.title = title;
+                    if(from == "resultTable"){
+                        $scope.globalData.clickedItem = $scope.globalData.items[itemIndex];
+                        $scope.globalData.clickedItemIdx = itemIndex;
+                    }else{
+                        $scope.globalData.clickedItem = $scope.globalData.itemsInStorage[itemIndex];
+                        $scope.globalData.clickedItemIdx = itemIndex;
+                    }
+
+                    $scope.globalData.isProgressBarVisible = true;
+                    $location.path('/detail_results');
+
+                    $http({
+                        method: "GET",
+                        url: "/similar-products",
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
+                        params: {"itemId": $scope.globalData.itemId}
+                    }).then(function (response) {
+                        //console.log("similar receive response");
+                        //console.log(response.data);
+
+                        jsonDoc = angular.fromJson(response.data);
+
+                        $scope.globalData.formatedSimilarProducts = [];
+                        if(jsonDoc.getSimilarItemsResponse.itemRecommendations.item.length == 0){
+                            $scope.globalData.similarProducts = undefined;
+                        }else{
+                            $scope.globalData.similarProducts = jsonDoc.getSimilarItemsResponse.itemRecommendations.item;
+                            for (i = 0; i < $scope.globalData.similarProducts.length; i++) {
+                                var tmp_obj = $scope.globalData.similarProducts[i];
+                                var tmp_title = tmp_obj.title;
+                                var tmp_price = parseFloat(tmp_obj.buyItNowPrice.__value__);
+                                var tmp_shippingCost = parseFloat(tmp_obj.shippingCost.__value__);
+                                var tmp_daysLeft = parseInt(tmp_obj.timeLeft.substring(1, tmp_obj.timeLeft.indexOf("D")));
+                                var tmp_imageURL = tmp_obj.imageURL;
+                                var tmp_viewItemURL = tmp_obj.viewItemURL;
+                                $scope.globalData.formatedSimilarProducts.push({ "viewItemURL": tmp_viewItemURL, "imageURL": tmp_imageURL, "title": tmp_title, "daysLeft": tmp_daysLeft, "price": tmp_price, "shippingCost": tmp_shippingCost });
+                            }
+                        }
+
+                    }, function (response) {
+                        window.alert("errorThrown");
+                    });
+
+                    $http({
+                        method: "GET",
+                        url: "/detail-link",
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
+                        params: { "itemId": $scope.globalData.itemId }
+                    }).then(function (response) {
+                        //console.log("detail receive response");
+                        //console.log(response.data);
+
+                        jsonDoc = angular.fromJson(response.data);
+
+                        $scope.globalData.itemSpecs = jsonDoc.Item;
+                        $scope.globalData.isProgressBarVisible = false;
+                    }, function (response) {
+                        window.alert("errorThrown");
+                    });
+                    //console.log($scope.globalData.itemSpecs);
+
+                    $http({
+                        method: "GET",
+                        url: "/google-photo",
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' },
+                        params: { "title": $scope.globalData.title }
+                    }).then(function (response) {
+                        //console.log("google photo receive response");
+                        //console.log(response.data);
+
+                        jsonDoc = angular.fromJson(response.data);
+
+                        $scope.globalData.googlePhotos = jsonDoc.items;
+                    }, function (response) {
+                        window.alert("errorThrown");
+                    });
+
+                }
+            }]);
+
+           
+            jsonObj_allItems = null;
+            item_clicked_idx = -1;
+            default_zip = null;
+
+            function getGeocode() {
+                var httprequest = new XMLHttpRequest();
+                httprequest.onreadystatechange = function () {
+                    if (this.readyState == 4) {
+                        if (this.status == 200) {
+                            $geo_json = httprequest.responseText;
+                            $geo_obj = JSON.parse($geo_json);
+                            default_zip = $geo_obj['zip'];
+                            document.getElementById('txt_default_zip').value = default_zip;
+                            document.getElementById('btn_submit').disabled = false;
+                        } else {
+                            window.alert('Not able to get geolocation.');
+                        }
+                    }
+                }
+                httprequest.open("GET", 'http://ip-api.com/json', false);
+                httprequest.send(null);
+            }
+            
+
+            $(document).ready(function(){
+                
+                var frm = $("#search_form");
+                frm.submit(function(event){
+                    event.preventDefault();
+                    
+                });
+                
+                getGeocode();
+            });
+        </script>
+
+        <div class="card bg-dark text-white" style="width:80%; margin-left: 10%;">
+            <div class="card-body" id="app_controller">
+                
+                <form name="search_form" id="search_form" autocomplete="off" action="/submit-form" method="GET" ng-submit="submitForm(search_form.$valid)" novalidate>
+                    <div class="form-group row">
+                    <div class="col">
+                        <h2 style="text-align:center;">Product Search</h2>
+                    </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-1"></div>
+                        <label for="keyword" name="lbl_keyword" class="col-sm-2 col-form-label required">Keyword</label>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" ng-class="{'invalid-border':search_form.txt_keyword.$invalid && !search_form.txt_keyword.$pristine}" ng-model="form.txt_keyword" name="txt_keyword" id="txt_keyword" placeholder="Enter Product Name (eg. iPhone 8)" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group row mt-1" ng-show="search_form.txt_keyword.$invalid && !search_form.txt_keyword.$pristine">
+                        <div class="col-1"></div>
+                        <div class="col-sm-2"></div>
+                        <div class="col-md-6 text-danger">Please enter a keyword.</div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-1"></div>
+                        <label for="category" name="lbl_category" class="col-sm-2 col-form-label">Category</label>
+                        <div class="col-md-3">
+                            <select class="custom-select" name="sl_category" ng-model="form.category">
+                                <option value="" selected>All Categories</option>
+                                <option value="art">Art</option>
+                                <option value="baby">Baby</option>
+                                <option value="books">Books</option>
+                                <option value="cloth">Clothing, Shoes & Accessories</option>
+                                <option value="computer">Computers/Tablets & Networking</option>
+                                <option value="health">Health & Beauty</option>
+                                <option value="music">Music</option>
+                                <option value="games">Video Games & Consoles</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-1"></div>
+                        <label for="condition" name="lbl_condition" class="col-sm-2 col-form-label">Condition</label>
+                        <div class="col checkbox">
+                            <label class="checkbox-inline" name="lbl_new"><input type="checkbox" ng-model="form.cb_new" name="cb_new" value="on">New</label>
+                            <label class="checkbox-inline" name="lbl_used"><input type="checkbox" ng-model="form.cb_used" name="cb_used" value="on">Used</label>
+                            <label class="checkbox-inline" name="lbl_unspecified"><input type="checkbox" ng-model="form.cb_unspecified" name="cb_unspecified" value="on">Unspecified</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-1"></div>
+                        <label for="shipping" name="lbl_shipping" class="col-sm-2 col-form-label">Shipping Options</label>
+                        <div class="col checkbox">
+                            <label class="checkbox-inline" name="lbl_pickup"><input type="checkbox" ng-model="form.cb_pickup" name="cb_pickup" value="on">Local Pickup</label>
+                            <label class="checkbox-inline" name="lbl_freeshipping"><input type="checkbox" ng-model="form.cb_freeshipping" name="cb_freeshipping" value="on">Free Shipping</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-1"></div>
+                        <label for="distance" name="lbl_distance" class="col-sm-2 col-form-label">Distance(Miles)</label>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" ng-model="form.txt_distance" name="txt_distance" id="distance" placeholder="10">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-1"></div>
+                        <label for="locatioon_from" name="lbl_from" class="col-sm-2 col-form-label required">From</label>
+                        <div class="col-md-6" ng-init="form.rb_zip_code='rb_default_zip'">
+                            <div class="radio">
+                                <label><input type="radio" ng-model="form.rb_zip_code" name="rb_zip_code" id="rb_default_zip" value="rb_default_zip" ng-click="currentLocationClicked()">Current Location</label>
+                            </div>
+                            <div class="radio">
+                                <label><input type="radio" ng-model="form.rb_zip_code" name="rb_zip_code" id="rb_custom_zip" value="rb_custom_zip">Other. Please specify zip code:</label>
+                            </div>
+                            <!--
+                            <input type="text" class="form-control" ng-model="form.txt_zip" name="txt_zip" id="txt_zip" ng-minlength="5" ng-maxlength="5" ng-class="{'invalid-border':form.rb_zip_code=='rb_custom_zip' && search_form.txt_zip.$invalid}" ng-disabled="form.rb_zip_code != 'rb_custom_zip'" ng-required="form.rb_zip_code=='rb_custom_zip'">
+                            -->
+                            
+                            <md-autocomplete flex md-dropdown-position="bottom" md-clear-button="false" md-no-cache="true" md-selected-item="selectedItem" md-search-text="searchText"
+                                md-items="item in querySearch(searchText)" md-item-text="item" md-input-name="txt_zip" md-input-id="txt_zip" md-input-minlength="1" md-require-match="true" ng-disabled="form.rb_zip_code != 'rb_custom_zip'" ng-required="form.rb_zip_code == 'rb_custom_zip'">
+                                <md-item-template>
+                                    <span md-highlight-text="searchText">{{ item }}</span>
+                                </md-item-template>
+                                
+                            </md-autocomplete>
+                            <div ng-messages="search_form.txt_zip.$error" ng-if="search_form.txt_zip.$touched" class="text-danger">
+                                <div ng-message="required">Please enter a zip code.</div>
+                                <div ng-message="minlength">Please enter a zip code.</div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+                        
+                            
+                    
+                    
+                    <!--
+                    <div class="form-group row mt-1" ng-show="form.rb_zip_code=='rb_custom_zip' && search_form.txt_zip.$invalid">
+                        <div class="col-1"></div>
+                        <div class="col-sm-2"></div>
+                        <div class="col-md-6 text-danger">Please enter a zip code.</div>
+                    </div>
+                    -->
+                    
+                    <div class="form-group row">
+                        <div class="col-1"></div>
+                        <div class="btn-toolbar">
+                            <button type="submit" name="btn_submit" id="btn_submit" ng-class="{'disabled': search_form.$invalid}" class="btn btn-default bg-white d-flex mr-4 justify-content-center">
+                                <span class="material-icons">search</span>Search
+                            </button>
+
+                            <button type="button" ng-click="resetBtnClicked()" name="btn_clear" class="btn btn-default bg-white d-flex justify-content-center">
+                                <span class="material-icons">clear_all</span>Clear
+                            </button>
+                        </div>
+                    </div>
+                    <input type="text" ng-model="form.txt_default_zip" name="txt_default_zip" id="txt_default_zip" style="display: none;">
+                </form>
+                
+            </div>
+        </div>
+
+
+        <div class="container mt-4" id="tabs_results_container">
+            <div class="tabbable">
+                <ul class="nav nav-pills mb-3 justify-content-center" id="pills-tab-results" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="pills-results-tab" data-toggle="pill" href="search_results" role="tab"
+                            aria-controls="pills-results" aria-selected="true">Results</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" ng-click="wishListTabClicked()" id="pills-wishList-tab" data-toggle="pill" href="wishList_results" role="tab"
+                            aria-controls="pills-wishList" aria-selected="false">Wish List</a>
+                    </li>
+                </ul>
+                <div class="tab-content mt-4" id="pills-tabContent-results" style="width: 100%;">
+                    <div class="tab-pane fade show active" id="pills-results" role="tabpanel" aria-labelledby="pills-results-tab">
+                        <div class="container mt-3" ng-show="globalData.isProgressBarVisible">
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 50%" aria-valuenow="50"
+                                    aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+
+
+                        <div class="animate-container">
+                            <div ng-view class="question"></div>
+                        </div>
+
+                    </div>
+
+                    <div class="tab-pane fade" id="pills-wishList" role="tabpanel" aria-labelledby="pills-wishList-tab">
+                    </div>
+                </div>
+            </div>​
+        </div>
+
+
+        <div class="modal fade" id="imagesModal" tabindex="-1" role="dialog" aria-labelledby="imagesModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="imagesModalLabel">Product Images</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="carousel slide" id="imagesCarousel" data-ride="carousel">
+                            <div class="carousel-inner" id="imagesCarousel-inner">
+                                <div class="carousel-item" ng-class="{active:!$index}" ng-repeat="url in globalData.itemSpecs.PictureURL track by $index">
+                                    <a target="_blank" href="{{url}}"><img style="width:100%" ng-src="{{url}}"></a>
+                                </div>
+                                
+                            </div>
+                            <a class="carousel-control-prev" href="#imagesCarousel" role="button" data-slide="prev">
+                                <span class="carousel-control-prev-icon bg-dark" aria-hidden="true"></span>
+                                <span class="sr-only">Previous</span>
+                            </a>
+                            <a class="carousel-control-next" href="#imagesCarousel" role="button" data-slide="next">
+                                <span class="carousel-control-next-icon bg-dark" aria-hidden="true"></span>
+                                <span class="sr-only">Next</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
